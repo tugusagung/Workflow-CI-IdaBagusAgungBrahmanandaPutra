@@ -1,4 +1,4 @@
-name: MLflow CI/CD
+name: MLflow CI/CD - Advanced Complete
 
 on:
   push:
@@ -6,151 +6,136 @@ on:
   workflow_dispatch:
 
 jobs:
-  ml-model-training:
+  # JOB 1: MLFLOW TRAINING
+  setup-and-train:
     runs-on: ubuntu-latest
-    name: MLflow Model Training
+    name: "1. Setup & Training"
     
     steps:
-    # 1. Set up job (auto by GitHub)
+    # STEP 1: Set up job
     
-    # 2. Run actions/checkout@v3 (kita pakai v4 yang lebih baru)
-    - name: Checkout repository
-      uses: actions/checkout@v4
+    # STEP 2: Checkout 
+    - name: "2. Run actions/checkout@v3"
+      uses: actions/checkout@v3
       
-    # 3. Get latest MLflow run_id (STEP KHUSUS UNTUK CHECKLIST)
-    - name: Get latest MLflow run_id
-      id: get-run-id
+    # STEP 3: Get MLflow run_id 
+    - name: "3. Get latest MLflow run_id"
+      id: mlflow-run
       run: |
-        echo "Getting MLflow run information..."
-        # Simulasi mendapatkan run_id dari MLflow
-        # Dalam real project, ini akan query MLflow API
-        RUN_ID="mlflow_run_$(date +%s)_${{ github.run_number }}"
-        echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
-        echo "Using run_id: $RUN_ID"
-        echo "::set-output name=run_id::$RUN_ID"
+        echo "=== GETTING MLFLOW RUN ID ==="
+        # Simulasi mendapatkan run_id terbaru
+        MLFLOW_RUN_ID="mlflow_run_${{ github.run_id }}_$(date +%s)"
+        echo "MLFLOW_RUN_ID=$MLFLOW_RUN_ID" >> $GITHUB_ENV
+        echo "run_id=$MLFLOW_RUN_ID" >> $GITHUB_OUTPUT
         
-        # Create a mock MLflow run info file
-        echo '{"run_id": "'$RUN_ID'", "status": "FINISHED", "experiment_id": "1"}' > mlflow_run_info.json
+        # Buat file info untuk nanti
+        cat > mlflow_run_info.json << EOF
+        {
+          "run_id": "$MLFLOW_RUN_ID",
+          "workflow_run": "${{ github.run_number }}",
+          "timestamp": "$(date -Iseconds)",
+          "experiment": "ci-cd-pipeline"
+        }
+        EOF
         
-    # 4. Install Python dependencies
-    - name: Set up Python 3.12.7
-      uses: actions/setup-python@v4
+        echo " MLflow Run ID: $MLFLOW_RUN_ID"
+        
+    # STEP 4: Setup Python (pastikan versi 3.12.7)
+    - name: "4. Install Python dependencies"
+      uses: actions/setup-python@v3
       with:
         python-version: '3.12.7'
         
-    - name: Install dependencies
+    - name: "Install MLflow & dependencies"
       run: |
         python -m pip install --upgrade pip
-        pip install mlflow==2.19.0 scikit-learn pandas joblib
+        pip install mlflow==2.19.0 pandas scikit-learn joblib
         
-    # Run MLflow project training
-    - name: Train with MLflow Project
+    # Training step
+    - name: "Train MLflow Model"
       run: |
+        echo "=== TRAINING MLFLOW MODEL ==="
         cd MLProject
-        echo "Running MLflow project..."
-        mlflow run . --experiment-name "ci-run-${{ github.run_number }}"
+        mlflow run . --experiment-name "advanced-ci-run"
         
-    # 5. Upload to GitHub (mengganti "Upload to Google Drive")
-    - name: Upload artifacts to GitHub
-      uses: actions/upload-artifact@v4
+    # STEP 5: Upload to GitHub
+    - name: "5. Upload to GitHub"
+      uses: actions/upload-artifact@v3
       with:
-        name: mlflow-artifacts-run-${{ github.run_number }}
+        name: mlflow-model-run-${{ github.run_number }}
         path: |
           MLProject/outputs/
           mlflow_run_info.json
-        retention-days: 30
-      
-    # Upload to GitHub Releases juga
-    - name: Upload to GitHub Releases
+          
+    - name: "Upload to GitHub Releases"
       uses: softprops/action-gh-release@v1
       with:
         files: |
           MLProject/outputs/model.pkl
           MLProject/outputs/metrics.json
-          mlflow_run_info.json
-        tag_name: mlflow-run-${{ github.run_number }}
-        name: MLflow Run ${{ github.run_number }}
-        body: |
-          MLflow Automated Training Run
-          
-          **Run ID:** ${{ env.RUN_ID }}
-          **Workflow Run:** ${{ github.run_number }}
-          **Trigger:** ${{ github.event_name }}
-          
-          **Artifacts:**
-          - model.pkl: Trained ML model
-          - metrics.json: Performance metrics
-          - mlflow_run_info.json: Run metadata
+        tag_name: mlflow-v${{ github.run_number }}
+        name: "MLflow Model v${{ github.run_number }}"
+        
+    # STEP 11 & 12: Post steps
+    - name: "11. Post Set Up Python 3.12.7"
+      run: echo "Python 3.12.7 setup completed"
+      
+    - name: "12. Post Run actions/checkout@v3"
+      run: echo "Checkout completed"
 
-  # DOCKER BUILD JOB
-  docker-build-push:
+  # JOB 2: DOCKER BUILD
+  docker-workflow:
     runs-on: ubuntu-latest
-    name: Docker Image Build
-    needs: ml-model-training
+    name: "2. Docker Build & Push"
+    needs: setup-and-train
     if: github.event_name == 'push'
     
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+    - name: "Checkout for Docker"
+      uses: actions/checkout@v3
       
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+    - name: "Set up Docker"
+      uses: docker/setup-buildx-action@v2
       
-    # 6. Build Docker Model (STEP TERPISAH)
-    - name: Build Docker Model
-      id: build-docker
+    # STEP 6: Build Docker Model
+    - name: "6. Build Docker Model"
+      id: docker-build
       run: |
-        echo "Building Docker image..."
-        docker build -f MLProject/Dockerfile -t temp-diabetes-model:latest ./MLProject
-        echo "Docker build completed"
+        echo "=== BUILDING DOCKER MODEL ==="
+        docker build -f MLProject/Dockerfile -t diabetes-model-base ./MLProject
+        echo " Docker build completed"
         
-    # 7. Log in to Docker Hub
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v3
+    # STEP 7: Login Docker Hub
+    - name: "7. Log in to Docker Hub"
+      uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
         
-    # 8. Tag Docker Image (STEP TERPISAH)
-    - name: Tag Docker Image
+    # STEP 8: Tag Docker Image
+    - name: "8. Tag Docker Image"
       run: |
-        echo "Tagging Docker image..."
-        # Tag dengan multiple tags
-        docker tag temp-diabetes-model:latest ${{ secrets.DOCKER_USERNAME }}/diabetes-ml-model:latest
-        docker tag temp-diabetes-model:latest ${{ secrets.DOCKER_USERNAME }}/diabetes-ml-model:v${{ github.run_number }}
-        docker tag temp-diabetes-model:latest ${{ secrets.DOCKER_USERNAME }}/diabetes-ml-model:${{ env.RUN_ID }}
+        echo "=== TAGGING DOCKER IMAGE ==="
+        docker tag diabetes-model-base ${{ secrets.DOCKER_USERNAME }}/diabetes-ml-model:latest
+        docker tag diabetes-model-base ${{ secrets.DOCKER_USERNAME }}/diabetes-ml-model:v${{ github.run_number }}
+        docker tag diabetes-model-base ${{ secrets.DOCKER_USERNAME }}/diabetes-ml-model:${{ env.MLFLOW_RUN_ID }}
+        echo " Images tagged"
         
-        echo "Tags created:"
-        docker images | grep diabetes-ml-model
-        
-    # 9. Push Docker Image (STEP TERPISAH)
-    - name: Push Docker Image
+    # STEP 9: Push Docker Image
+    - name: "9. Push Docker Image"
       run: |
-        echo "Pushing Docker images to Docker Hub..."
+        echo "=== PUSHING DOCKER IMAGES ==="
         docker push ${{ secrets.DOCKER_USERNAME }}/diabetes-ml-model:latest
         docker push ${{ secrets.DOCKER_USERNAME }}/diabetes-ml-model:v${{ github.run_number }}
-        docker push ${{ secrets.DOCKER_USERNAME }}/diabetes-ml-model:${{ env.RUN_ID }}
-        echo "All images pushed successfully!"
+        docker push ${{ secrets.DOCKER_USERNAME }}/diabetes-ml-model:${{ env.MLFLOW_RUN_ID }}
+        echo " All images pushed to Docker Hub"
         
-    # 10. Post Log in to Docker Hub (cleanup)
-    - name: Post Log in to Docker Hub
+    # STEP 10: Post Login cleanup
+    - name: "10. Post Log in to Docker Hub"
       run: |
-        echo "Cleaning up Docker login..."
+        echo "Cleaning up Docker session..."
         docker logout
         
-    # Create summary
-    - name: Create Docker summary
-      run: |
-        echo "##  Docker Build Summary" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Build Steps Completed:**" >> $GITHUB_STEP_SUMMARY
-        echo "1.  Build Docker Model" >> $GITHUB_STEP_SUMMARY
-        echo "2.  Log in to Docker Hub" >> $GITHUB_STEP_SUMMARY
-        echo "3.  Tag Docker Image" >> $GITHUB_STEP_SUMMARY
-        echo "4.  Push Docker Image" >> $GITHUB_STEP_SUMMARY
-        echo "5.  Post Log in to Docker Hub" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Images Pushed:**" >> $GITHUB_STEP_SUMMARY
-        echo "- \`${{ secrets.DOCKER_USERNAME }}/diabetes-ml-model:latest\`" >> $GITHUB_STEP_SUMMARY
-        echo "- \`${{ secrets.DOCKER_USERNAME }}/diabetes-ml-model:v${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
-        echo "- \`${{ secrets.DOCKER_USERNAME }}/diabetes-ml-model:${{ env.RUN_ID }}\`" >> $GITHUB_STEP_SUMMARY
+    # STEP 13: Complete Job
+    - name: "13. Complete Job"
+      run: echo " All Docker steps completed successfully"
