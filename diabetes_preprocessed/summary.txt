@@ -1,0 +1,21 @@
+Diabetes Data Preprocessing Summary
+========================================
+Timestamp: 2025-12-21 15:52:33
+Execution time: 0.07 seconds
+
+Data Statistics:
+- Original rows: 768
+- Cleaned rows: 768
+- Training set: 614 rows
+- Test set: 154 rows
+
+Class Distribution:
+- 0: 500
+- 1: 268
+
+Zero Value Handling:
+- Glucose: Replaced 5 zeros with median 117.00
+- BloodPressure: Replaced 35 zeros with median 72.00
+- SkinThickness: Replaced 227 zeros with median 29.00
+- Insulin: Replaced 374 zeros with median 125.00
+- BMI: Replaced 11 zeros with median 32.30

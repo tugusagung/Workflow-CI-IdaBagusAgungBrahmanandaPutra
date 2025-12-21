@@ -1,0 +1,16 @@
+name: diabetes-prediction-project
+conda_env: conda.yaml
+
+entry_points:
+  main:
+    parameters:
+      experiment_name:
+        type: str
+        default: "mlflow-project-run"
+      n_estimators:
+        type: int
+        default: 100
+      max_depth:
+        type: int
+        default: 10
+    command: "python modelling.py --experiment_name {experiment_name} --n_estimators {n_estimators} --max_depth {max_depth}"

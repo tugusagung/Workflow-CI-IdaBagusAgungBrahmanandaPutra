@@ -1,0 +1,36 @@
+{
+  "timestamp": "2025-12-21T15:52:33.125538",
+  "input_file": "c:\\Users\\User\\OneDrive\\Dokumen\\SMSML_Submission\\Eksperimen_SML_IdaBagusAgungBrahmanandaPutra\\diabetes.csv",
+  "output_directory": "c:\\Users\\User\\OneDrive\\Dokumen\\SMSML_Submission\\Eksperimen_SML_IdaBagusAgungBrahmanandaPutra\\preprocessing\\diabetes_preprocessed",
+  "rows_original": 768,
+  "rows_cleaned": 768,
+  "test_size": 0.2,
+  "random_state": 42,
+  "zero_handling": {
+    "Glucose": {
+      "zeros_before": 5,
+      "median_value": 117.0
+    },
+    "BloodPressure": {
+      "zeros_before": 35,
+      "median_value": 72.0
+    },
+    "SkinThickness": {
+      "zeros_before": 227,
+      "median_value": 29.0
+    },
+    "Insulin": {
+      "zeros_before": 374,
+      "median_value": 125.0
+    },
+    "BMI": {
+      "zeros_before": 11,
+      "median_value": 32.3
+    }
+  },
+  "duplicates_removed": 0,
+  "class_distribution": {
+    "0": 500,
+    "1": 268
+  }
+}
