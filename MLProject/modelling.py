@@ -48,20 +48,18 @@ def main():
     
     # 2. SETUP MLFLOW
     print("\n2. SETUP MLFLOW")
-    mlflow.set_experiment(args.experiment_name)
     
-    # Check if we're already in an active run (when called from mlflow run)
-    # If yes, don't create a new run
-    if mlflow.active_run() is None:
-        # Only create new run if not running from mlflow run command
-        run_context = mlflow.start_run(run_name=f"mlproject-{datetime.now().strftime('%H%M%S')}")
+    # Check if running from mlflow run command (environment variable is set)
+    is_mlflow_project = os.environ.get('MLFLOW_RUN_ID') is not None
+    
+    if not is_mlflow_project:
+        # Only set experiment and start run if NOT called from mlflow run
+        mlflow.set_experiment(args.experiment_name)
+        mlflow.start_run(run_name=f"mlproject-{datetime.now().strftime('%H%M%S')}")
+        print(f"   Created new MLflow run")
     else:
-        # Use existing run from mlflow run command
-        run_context = mlflow.active_run()
-        print(f"   Using existing MLflow run: {run_context.info.run_id}")
-    
-    # Use context manager only if we created the run
-    should_end_run = mlflow.active_run() is not None and run_context is not None
+        # When called from mlflow run, the run is already created
+        print(f"   Using MLflow project run: {os.environ.get('MLFLOW_RUN_ID')}")
     
     try:
         # 3. LOG PARAMETERS
@@ -118,7 +116,7 @@ def main():
         
         # Save run info
         run_info = {
-            'run_id': mlflow.active_run().info.run_id,
+            'run_id': mlflow.active_run().info.run_id if mlflow.active_run() else 'unknown',
             'experiment': args.experiment_name,
             'timestamp': datetime.now().isoformat(),
             'parameters': {
@@ -127,8 +125,8 @@ def main():
             },
             'metrics': metrics,
             'data_info': {
-                'training_samples': len(X_train),
-                'test_samples': len(X_test),
+                'training_samples': len(X_train) if hasattr(X_train, '__len__') else X_train.shape[0],
+                'test_samples': len(X_test) if hasattr(X_test, '__len__') else X_test.shape[0],
                 'features': X_train.shape[1] if hasattr(X_train, 'shape') else len(X_train[0])
             }
         }
@@ -158,10 +156,10 @@ def main():
     
     finally:
         # Only end run if we created it (not from mlflow run)
-        if should_end_run and isinstance(run_context, mlflow.ActiveRun):
+        if not is_mlflow_project and mlflow.active_run():
             mlflow.end_run()
 
 if __name__ == "__main__":
     print("Starting MLflow Project execution...")
     accuracy = main()
-    print(f"\n Final accuracy: {accuracy:.4f}")
+    print(f"\n🏁 Final accuracy: {accuracy:.4f}")
