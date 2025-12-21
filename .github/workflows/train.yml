@@ -36,7 +36,7 @@ jobs:
     - name: Run mlflow project
       run: |
         cd MLProject
-        mlflow run . --experiment-name "single-job-pipeline"
+        mlflow run . --experiment-name "ci-pipeline" --env-manager=local
         
     # 7. Get latest MLflow run_id
     - name: Get latest MLflow run_id
