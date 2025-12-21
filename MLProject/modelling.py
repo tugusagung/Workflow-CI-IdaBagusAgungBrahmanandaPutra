@@ -50,7 +50,20 @@ def main():
     print("\n2. SETUP MLFLOW")
     mlflow.set_experiment(args.experiment_name)
     
-    with mlflow.start_run(run_name=f"mlproject-{datetime.now().strftime('%H%M%S')}"):
+    # Check if we're already in an active run (when called from mlflow run)
+    # If yes, don't create a new run
+    if mlflow.active_run() is None:
+        # Only create new run if not running from mlflow run command
+        run_context = mlflow.start_run(run_name=f"mlproject-{datetime.now().strftime('%H%M%S')}")
+    else:
+        # Use existing run from mlflow run command
+        run_context = mlflow.active_run()
+        print(f"   Using existing MLflow run: {run_context.info.run_id}")
+    
+    # Use context manager only if we created the run
+    should_end_run = mlflow.active_run() is not None and run_context is not None
+    
+    try:
         # 3. LOG PARAMETERS
         print("\n3. LOGGING PARAMETERS")
         mlflow.log_param("model_type", "RandomForest")
@@ -116,7 +129,7 @@ def main():
             'data_info': {
                 'training_samples': len(X_train),
                 'test_samples': len(X_test),
-                'features': X_train.shape[1]
+                'features': X_train.shape[1] if hasattr(X_train, 'shape') else len(X_train[0])
             }
         }
         
@@ -142,8 +155,13 @@ def main():
         print(f"   - {info_path}")
         
         return metrics['accuracy']
+    
+    finally:
+        # Only end run if we created it (not from mlflow run)
+        if should_end_run and isinstance(run_context, mlflow.ActiveRun):
+            mlflow.end_run()
 
 if __name__ == "__main__":
     print("Starting MLflow Project execution...")
     accuracy = main()
-    print(f"\n🏁 Final accuracy: {accuracy:.4f}")
+    print(f"\n Final accuracy: {accuracy:.4f}")
