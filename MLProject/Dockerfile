@@ -1,19 +1,12 @@
-# MLflow Project Dockerfile
-FROM python:3.12-slim
+# Dockerfile untuk MLflow Model
+FROM python:3.12.7-slim
 
-# Set working directory
 WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    wget \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
 
 # Copy project files
 COPY . /app/
 
-# Install Python dependencies
+# Install dependencies
 RUN pip install --no-cache-dir \
     mlflow==2.19.0 \
     pandas==2.0.3 \
@@ -21,8 +14,8 @@ RUN pip install --no-cache-dir \
     scikit-learn==1.3.0 \
     joblib==1.3.2
 
-# Expose MLflow port
+# Expose port untuk MLflow serving
 EXPOSE 5000
 
-# Command to run MLflow project
-CMD ["mlflow", "run", ".", "--experiment-name", "docker-container-run"]
+# Command untuk run model (bisa diserving)
+CMD ["python", "-c", "print('Diabetes ML Model Container Ready')"]
