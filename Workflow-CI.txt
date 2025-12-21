@@ -1,0 +1,19 @@
+GitHub Repository: https://github.com/tugusagung/Workflow-CI-IdaBagusAgungBrahmanandaPutra
+GitHub Actions Run: https://github.com/tugusagung/Workflow-CI-IdaBagusAgungBrahmanandaPutra/actions/runs/20412965812
+
+Tautan ke Docker Hub: https://hub.docker.com/repository/docker/tugusagung/diabetes-ml-model
+Docker Images Available:
+1. username/diabetes-ml-project:latest
+2. username/diabetes-ml-project:v14
+
+
+MLflow Project Structure:
+- MLProject/MLProject
+- MLProject/conda.yaml  
+- MLProject/modelling.py
+- MLProject/python_env.yaml
+- MLProject/diabetes_preprocessed/
+- MLProject/Dockerfile
+
+GitHub Actions Workflow: .github/workflows/train.yml
+Trigger: push, workflow_dispatch
