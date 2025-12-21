@@ -15,8 +15,8 @@ jobs:
     # STEP 1: Set up job
     
     # STEP 2: Checkout 
-    - name: "2. Run actions/checkout@v3"
-      uses: actions/checkout@v3
+    - name: "2. Run actions/checkout@v4"
+      uses: actions/checkout@v4
       
     # STEP 3: Get MLflow run_id 
     - name: "3. Get latest MLflow run_id"
@@ -42,7 +42,7 @@ jobs:
         
     # STEP 4: Setup Python (pastikan versi 3.12.7)
     - name: "4. Install Python dependencies"
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v5
       with:
         python-version: '3.12.7'
         
@@ -60,7 +60,7 @@ jobs:
         
     # STEP 5: Upload to GitHub
     - name: "5. Upload to GitHub"
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: mlflow-model-run-${{ github.run_number }}
         path: |
@@ -68,7 +68,7 @@ jobs:
           mlflow_run_info.json
           
     - name: "Upload to GitHub Releases"
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: |
           MLProject/outputs/model.pkl
@@ -80,7 +80,7 @@ jobs:
     - name: "11. Post Set Up Python 3.12.7"
       run: echo "Python 3.12.7 setup completed"
       
-    - name: "12. Post Run actions/checkout@v3"
+    - name: "12. Post Run actions/checkout@v4"
       run: echo "Checkout completed"
 
   # JOB 2: DOCKER BUILD
@@ -92,10 +92,10 @@ jobs:
     
     steps:
     - name: "Checkout for Docker"
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       
     - name: "Set up Docker"
-      uses: docker/setup-buildx-action@v2
+      uses: docker/setup-buildx-action@v3
       
     # STEP 6: Build Docker Model
     - name: "6. Build Docker Model"
@@ -107,7 +107,7 @@ jobs:
         
     # STEP 7: Login Docker Hub
     - name: "7. Log in to Docker Hub"
-      uses: docker/login-action@v2
+      uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
