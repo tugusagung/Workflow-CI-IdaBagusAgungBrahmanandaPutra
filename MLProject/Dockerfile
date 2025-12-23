@@ -8,7 +8,7 @@ WORKDIR /app
 COPY outputs/ /app/outputs/
 COPY modelling.py /app/
 
-# Install dependencies (compatible versions for Python 3.12.7)
+# Install dependencies
 RUN pip install --no-cache-dir \
     mlflow==2.19.0 \
     pandas \
@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir \
     scikit-learn \
     joblib
 
-# Expose port for MLflow (if needed)
+# Expose port for MLflow
 EXPOSE 5000
 
 # Set environment variables
