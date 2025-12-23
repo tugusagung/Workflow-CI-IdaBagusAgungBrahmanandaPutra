@@ -3,9 +3,8 @@ GitHub Actions Run: https://github.com/tugusagung/Workflow-CI-IdaBagusAgungBrahm
 
 Tautan ke Docker Hub: https://hub.docker.com/repository/docker/tugusagung/diabetes-ml-model
 Docker Images Available:
-1. username/diabetes-ml-project:latest
-2. username/diabetes-ml-project:v14
-
+1. tugusagung/diabetes-ml-model:latest
+2. tugusagung/diabetes-ml-model:v14
 
 MLflow Project Structure:
 - MLProject/MLProject
